@@ -269,7 +269,7 @@ public class Address extends VersionedChecksummedBytes {
                 return true;
             }
         }
-        return false;
+        return true;
     }
 
     /**
