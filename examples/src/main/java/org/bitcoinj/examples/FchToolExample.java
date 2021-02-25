@@ -1,6 +1,7 @@
 package org.bitcoinj.examples;
 
 import org.tools.FchTool;
+import org.tools.IdInfo;
 import org.tools.TxInput;
 import org.tools.TxOutput;
 
@@ -10,9 +11,9 @@ import java.util.List;
 public class FchToolExample {
     public static void main(String[] args)  {
         //generateIdInfo();L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP
-        // IdInfo id = new IdInfo("L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP");
-        // System.out.println(id.getAddress());
-        // String sign = id.signFullMessage("helloworld");
+         IdInfo id = new IdInfo("L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP");
+         System.out.println(id.getPubkey());
+         //String sign = id.signFullMessage("helloworld");
         // System.out.println(sign);
         // System.out.println(id.verifyFullMsg("helloworld----F7i2w8LL5Y1nZXJgneJdwCxdYMPH67kiUp----IDJ9c72QO6TYjXxomzMRN4Woq4/EqExXSzYG838FV6iiOHsIgu6hLD72kp4cTC7ggCm2kMPH9eIs9OHSJFbAwbs="));
         List<TxInput> inputs=new ArrayList<>();
@@ -82,6 +83,8 @@ public class FchToolExample {
 
         System.out.println(FchTool.msgHash("年"));
         //System.out.println(FchTool.msgFileHash("/home/seaky/4.txt"));
+
+        System.out.println(FchTool.calcMinFee(5,2,null,"FBmgfrbzRiJNTPnjgknRxqVU2CmKQFnKM4",1000000));
 
 
     }

@@ -34,9 +34,10 @@ public class IdInfo {
 
     private void init(ECKey ecKey, CoinType cointype) {
         this.ecKey = ecKey;
-        this.privatekey = privatekey;
+        this.privatekey = ecKey.getPrivateKeyAsWiF(FchMainNetwork.MAINNETWORK);
         this.address = ecKey.toAddress(FchMainNetwork.MAINNETWORK).toString();
         this.pubkey = Utils.HEX.encode(ecKey.getPubKey());
+
     }
 
     public String getPrivatekey() {

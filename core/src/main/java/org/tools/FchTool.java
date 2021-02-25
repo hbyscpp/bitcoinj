@@ -185,4 +185,29 @@ public class FchTool {
         }
     }
 
+    public static long calcMinFee(int inputsize, int outputsize, String openreturn, String opreturnAddr, long fee) {
+
+        List<TxInput> txInputs = new ArrayList<>();
+        for (int i = 0; i < inputsize; ++i) {
+
+            TxInput input = new TxInput();
+            input.setPrivateKey("KxhPaZzFT1S48C4mmZsBiAvxyAEE1E5zcnFKD93Zc69ENpchjxra");
+            input.setIndex(0);
+            input.setTxId("4a6bef758ae46c4610e5970e75d87effb8630eb3c8d2401008b78fc73f86d41e");
+            input.setAmount(20000000);
+            txInputs.add(input);
+        }
+        List<TxOutput> txOutputs = new ArrayList<>();
+        for (int i = 0; i < outputsize; ++i) {
+
+            TxOutput output = new TxOutput();
+            output.setAddress("FBmgfrbzRiJNTPnjgknRxqVU2CmKQFnKM4");
+            output.setAmount(1);
+            txOutputs.add(output);
+        }
+        String sig = createTransactionSign(txInputs, txOutputs, openreturn, opreturnAddr, 1000000);
+        byte[] sigBytes = Utils.HEX.decode(sig);
+        return sigBytes.length;
+    }
+
 }
