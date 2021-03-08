@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FchToolExample {
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws Exception {
         //generateIdInfo();L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP
          IdInfo id = new IdInfo("L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP");
          System.out.println(id.getPubkey());
@@ -85,6 +85,12 @@ public class FchToolExample {
         //System.out.println(FchTool.msgFileHash("/home/seaky/4.txt"));
 
         System.out.println(FchTool.calcMinFee(5,2,null,"FBmgfrbzRiJNTPnjgknRxqVU2CmKQFnKM4",1000000));
+
+        String data=FchTool.encryptData("hello",id.getPubkey());
+        System.out.println(data);
+
+
+       System.out.println(FchTool.decryptData(data, id.getPrivatekey()));
 
 
     }
