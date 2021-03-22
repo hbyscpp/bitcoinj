@@ -1,15 +1,20 @@
 package org.bitcoinj.examples;
 
-import org.tools.FchTool;
-import org.tools.IdInfo;
-import org.tools.TxInput;
-import org.tools.TxOutput;
+import org.bitcoinj.core.Utils;
+import org.tools.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FchToolExample {
     public static void main(String[] args) throws Exception {
+
+
+        IdInfo i=new IdInfo("KxFTXjBRwrtS8T5DrMbtwBhxVkACgom83DhHKzeuqFthNS3dRVhG");
+        String addrr=FchTool.pubkeyToAddr("023e0098dbd6126b140a160073d3ab1f94bff109f144d211c4054759e2fe2e7f86");
+        System.out.println(addrr);
+        byte[] b=Utils.HEX.decode("7b2274797065223a2246454950222c22736e223a332c2276657273696f6e223a342c224e616d65223a22434944222c2248617368223a2261383063643332376566633261306561663163336264636462646663653262326237636234306264643430653439383661636466323266666138386264303431222c2264617461223a7b226f70223a227265676973746572222c226e616d65223a224359227d7d");
+        String str=new String(b,"utf-8");
         //generateIdInfo();L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP
          IdInfo id = new IdInfo("L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP");
          System.out.println(id.getPubkey());
@@ -86,11 +91,14 @@ public class FchToolExample {
 
         System.out.println(FchTool.calcMinFee(5,2,null,"FBmgfrbzRiJNTPnjgknRxqVU2CmKQFnKM4",1000000));
 
-        String data=FchTool.encryptData("hello",id.getPubkey());
-        System.out.println(data);
+        System.out.println(FchProtocol.createCidProtocol("123", FchProtocol.CidOpType.Create));
+
+        System.out.println(FchProtocol.createDigitEnvelopeProtocol("123"));
+        System.out.println(FchProtocol.delDigitEnvelopeProtocol("456789"));
 
 
-       System.out.println(FchTool.decryptData(data, id.getPrivatekey()));
+
+
 
 
     }

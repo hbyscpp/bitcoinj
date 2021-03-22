@@ -1,35 +1,40 @@
 package org.tools;
 
 import com.google.gson.Gson;
-import org.bitcoinj.utils.JSONHelper;
 
 import java.nio.charset.Charset;
-import java.util.List;
 
 public class FchProtocol {
 
-    public static enum CidOpType{
+    public static enum CidOpType {
 
-        Create,Update,Delete
-    };
+        Create, Update, Delete
+    }
 
-    private static Charset UTF_8=Charset.forName("utf-8");
+    public static enum DigitEnvelopeOpType {
 
-    private static Gson gson=new Gson();
+        Create, Update, Delete
+    }
 
-    public static class Protocol{
+    ;
 
-    private String type;
+    private static Charset UTF_8 = Charset.forName("utf-8");
 
-    private int sn;
+    private static Gson gson = new Gson();
 
-    private int version;
+    public static class Protocol {
 
-    private String name;
+        private String type;
 
-    private String hash;
+        private int sn;
 
-    private Object data;
+        private int ver;
+
+        private String name;
+
+        private String hash;
+
+        private Object data;
 
         public String getType() {
             return type;
@@ -38,7 +43,6 @@ public class FchProtocol {
         public void setType(String type) {
             this.type = type;
         }
-
 
 
         public String getName() {
@@ -73,20 +77,20 @@ public class FchProtocol {
             this.sn = sn;
         }
 
-        public int getVersion() {
-            return version;
+        public int getVer() {
+            return ver;
         }
 
-        public void setVersion(int version) {
-            this.version = version;
+        public void setVer(int ver) {
+            this.ver = ver;
         }
     }
 
-    private static class CidData{
+    private static class CidData {
 
         private String name;
 
-        private String operation;
+        private String op;
 
         public String getName() {
             return name;
@@ -96,43 +100,130 @@ public class FchProtocol {
             this.name = name;
         }
 
-        public String getOperation() {
-            return operation;
+        public String getOp() {
+            return op;
         }
 
-        public void setOperation(String operation) {
-            this.operation = operation;
+        public void setOp(String op) {
+            this.op = op;
         }
     }
+
+    private static class DigitEnvelope {
+
+        private String op;
+
+        private String alg;
+
+        private String msg;
+
+        public String getOp() {
+            return op;
+        }
+
+        public void setOp(String op) {
+            this.op = op;
+        }
+
+        public String getAlg() {
+            return alg;
+        }
+
+        public void setAlg(String alg) {
+            this.alg = alg;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+    }
+
+    private static class DigitEnvelopeDel {
+
+        private String op;
+
+        private String txid;
+
+
+        public String getOp() {
+            return op;
+        }
+
+        public void setOp(String op) {
+            this.op = op;
+        }
+
+        public String getTxid() {
+            return txid;
+        }
+
+        public void setTxid(String txid) {
+            this.txid = txid;
+        }
+    }
+
     /**
-     *
      * @return
      */
-    public static String createCidProtocol(String cid,CidOpType type){
+    public static String createCidProtocol(String cid, CidOpType type) {
 
-        Protocol protocol=new Protocol();
+        Protocol protocol = new Protocol();
         protocol.setHash("");
         protocol.setName("CID");
         protocol.setType("FEIP");
         protocol.setSn(3);
-        protocol.setVersion(4);
-        CidData cidData=new CidData();
+        protocol.setVer(4);
+        CidData cidData = new CidData();
+        protocol.setData(cidData);
 
-        if(type==CidOpType.Create || type==CidOpType.Update){
+        if (type == CidOpType.Create || type == CidOpType.Update) {
 
-            if(cid==null || cid.getBytes(UTF_8).length>32){
-                throw  new IllegalArgumentException("cid is null or too long");
-            }
-            cidData.setName(cid);
-            cidData.setOperation("register");
-        }
-        if(type==CidOpType.Delete){
-
-            if(cid==null || cid.getBytes(UTF_8).length>32) {
+            if (cid == null || cid.getBytes(UTF_8).length > 32) {
                 throw new IllegalArgumentException("cid is null or too long");
             }
-            cidData.setOperation("unregister");
+            cidData.setName(cid);
+            cidData.setOp("register");
         }
-        return gson.toJson(cidData);
+        if (type == CidOpType.Delete) {
+
+            if (cid == null || cid.getBytes(UTF_8).length > 32) {
+                throw new IllegalArgumentException("cid is null or too long");
+            }
+            cidData.setOp("unregister");
+        }
+        return gson.toJson(protocol);
+    }
+
+    public static String createDigitEnvelopeProtocol(String msg) {
+        Protocol protocol = new Protocol();
+        protocol.setHash("");
+        protocol.setName("DigitEnvelope");
+        protocol.setType("FEIP");
+        protocol.setSn(17);
+        protocol.setVer(3);
+        DigitEnvelope digitEnvelope = new DigitEnvelope();
+        protocol.setData(digitEnvelope);
+        digitEnvelope.setAlg("ECC256k1-AES256CBC");
+        digitEnvelope.setOp("add");
+        digitEnvelope.setMsg(msg);
+        return gson.toJson(protocol);
+    }
+
+    public static String delDigitEnvelopeProtocol(String txid) {
+        Protocol protocol = new Protocol();
+        protocol.setHash("");
+        protocol.setName("DigitEnvelope");
+        protocol.setType("FEIP");
+        protocol.setSn(17);
+        protocol.setVer(3);
+        DigitEnvelopeDel digitEnvelope = new DigitEnvelopeDel();
+        protocol.setData(digitEnvelope);
+        digitEnvelope.setOp("del");
+        digitEnvelope.setTxid(txid);
+        return gson.toJson(protocol);
     }
 }

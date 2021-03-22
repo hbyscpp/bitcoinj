@@ -57,6 +57,10 @@ public class IdInfo {
     }
 
 
+    public ECKey getECKey(){
+        return ecKey;
+    }
+
 
     public String getAddress() {
         return address;

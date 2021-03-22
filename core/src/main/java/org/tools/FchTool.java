@@ -21,34 +21,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.spec.*;
-import java.security.spec.ECPublicKeySpec;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
-import org.bouncycastle.crypto.agreement.ECDHBasicAgreement;
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.generators.KDF2BytesGenerator;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.bouncycastle.jce.interfaces.ECPublicKey;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.*;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.math.ec.ECCurve;
-import org.bouncycastle.util.encoders.Base64;
-import org.bouncycastle.util.encoders.Hex;
-import org.tools.ecies.AESGCMBlockCipher;
-import org.tools.ecies.EccHelper;
-import org.tools.ecies.IESCipherGCM;
-import org.tools.ecies.IESEngineGCM;
-
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import org.bouncycastle.math.ec.WNafL2RMultiplier;
 import java.util.Map;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 /**
  * 工具类
  */
@@ -251,133 +235,6 @@ public class FchTool {
             throw new RuntimeException(e);
         }
     }
-
-    public static String encryptData(String plaintext,String pubkey) throws Exception {
-        byte[] compressPubkey=Utils.HEX.decode(pubkey);
-        return encrypt(plaintext,compressPubkey,"secp256k1");
-    }
-
-    public static String decryptData(String plaintext,String privatekey) throws Exception {
-        NetworkParameters params = FchMainNetwork.MAINNETWORK;
-        byte[] bytesWif = Base58.decodeChecked(privatekey);
-        byte[] privateKeyBytes = new byte[32];
-        System.arraycopy(bytesWif, 1, privateKeyBytes, 0, 32);
-        ECKey eckey = ECKey.fromPrivate(privateKeyBytes);
-        return decrypt(plaintext,eckey.getPrivKey());
-    }
-    private static String encrypt(String plaintext, byte[] publicKeyBytes, String curveName) throws Exception {
-
-        org.bouncycastle.jce.spec.ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec(curveName);
-        KeyFactory keyFactory = KeyFactory.getInstance("EC", new BouncyCastleProvider());
-        org.bouncycastle.jce.spec.ECNamedCurveSpec curvedParams = new ECNamedCurveSpec(curveName, spec.getCurve(), spec.getG(), spec.getN());
-        java.security.spec.ECPoint point = org.bouncycastle.jce.ECPointUtil.decodePoint(curvedParams.getCurve(), publicKeyBytes);
-        java.security.spec.ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, curvedParams);
-        org.bouncycastle.jce.interfaces.ECPublicKey publicKey = (ECPublicKey) keyFactory.generatePublic(pubKeySpec);
-
-        byte[] inputBytes = plaintext.getBytes();
-        ECKey ecKey=new ECKey();
-        byte[] iv= calcIv(ecKey,decodePoint(curvedParams.getCurve(),publicKeyBytes));
-        byte[] ivs=new byte[16];
-        System.arraycopy(iv,0,ivs,0,16);
-        org.bouncycastle.jce.spec.IESParameterSpec params = new IESParameterSpec(null, null, 128, 128,  Hex.decode("000102030405060708090a0b0c0d0e0f"));
-        Cipher cipher = Cipher.getInstance("ECIESwithAES-CBC");
-        cipher.init(Cipher.ENCRYPT_MODE,publicKey,params,new SecureRandom());
-        byte[] cipherResult = cipher.doFinal(inputBytes,0,inputBytes.length);
-        return Base64.toBase64String(cipherResult);
-    }
-
-    private static byte[] calcIv(ECKey current, org.bouncycastle.math.ec.ECPoint point){
-
-        org.bouncycastle.math.ec.ECPoint newpoint=point.multiply(current.getPrivKey());
-        byte[] buffer=newpoint.getRawXCoord().getEncoded();
-        Digest digest=new SHA512Digest();
-        digest.update(buffer,0,buffer.length);
-        byte[] r=new byte[digest.getDigestSize()];
-        digest.doFinal(r,0);
-        return r;
-    }
-
-    private static byte[] calcEnIv(byte[] cipher,BigInteger privateKey) throws NoSuchAlgorithmException {
-
-         ECKey eckey;
-         byte[] pukey=null;
-         switch (cipher[0]){
-             case 4:
-                 pukey=new byte[65];
-                 System.arraycopy(cipher,0,pukey,0,65);
-                 eckey=ECKey.fromPublicOnly(pukey);
-                 break;
-             case 3:
-             case 2:
-                 pukey=new byte[33];
-                 System.arraycopy(cipher,0,pukey,0,33);
-                 eckey=ECKey.fromPublicOnly(pukey);
-                 break;
-             default:
-                 throw new RuntimeException("invalid");
-
-         }
-        byte[] publicKeyBytes=eckey.getPubKey();
-        org.bouncycastle.jce.spec.ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
-        KeyFactory keyFactory = KeyFactory.getInstance("EC", new BouncyCastleProvider());
-        org.bouncycastle.jce.spec.ECNamedCurveSpec curvedParams = new ECNamedCurveSpec("secp256k1", spec.getCurve(), spec.getG(), spec.getN());
-        org.bouncycastle.math.ec.ECPoint point = decodePoint(curvedParams.getCurve(), publicKeyBytes);
-        ECKey current=ECKey.fromPrivate(privateKey);
-        return calcIv(current,point);
-    }
-
-    public static org.bouncycastle.math.ec.ECPoint decodePoint(
-            EllipticCurve curve,
-            byte[] encoded)
-    {
-        ECCurve c = null;
-
-        if (curve.getField() instanceof ECFieldFp)
-        {
-            c = new ECCurve.Fp(
-                    ((ECFieldFp)curve.getField()).getP(), curve.getA(), curve.getB());
-        }
-        else
-        {
-            int k[] = ((ECFieldF2m)curve.getField()).getMidTermsOfReductionPolynomial();
-
-            if (k.length == 3)
-            {
-                c = new ECCurve.F2m(
-                        ((ECFieldF2m)curve.getField()).getM(), k[2], k[1], k[0], curve.getA(), curve.getB());
-            }
-            else
-            {
-                c = new ECCurve.F2m(
-                        ((ECFieldF2m)curve.getField()).getM(), k[0], curve.getA(), curve.getB());
-            }
-        }
-
-        return c.decodePoint(encoded);
-    }
-
-
-    private static String decrypt(String ciphertext, BigInteger privateKeyBytes) throws Exception {
-
-        ECParameterSpec paramSpec=ECNamedCurveTable.getParameterSpec("secp256k1");
-        ECPrivateKeySpec privateSpec=new ECPrivateKeySpec(privateKeyBytes,paramSpec);
-        KeyFactory keyFactory = KeyFactory.getInstance("EC", new BouncyCastleProvider());
-        org.bouncycastle.jce.interfaces.ECPrivateKey privateKey = (ECPrivateKey) keyFactory.generatePrivate(privateSpec);
-
-        byte[] inputBytes = Base64.decode(ciphertext);
-        byte[] derivation = Hex.decode("202122232425262728292a2b2c2d2e2f");
-        byte[] encoding   = Hex.decode("303132333435363738393a3b3c3d3e3f");
-        byte[] iv= calcEnIv(inputBytes,privateKeyBytes);
-        System.out.println(iv[0]);
-        IESParameterSpec params = new IESParameterSpec(null, null, 128, 128,  Hex.decode("000102030405060708090a0b0c0d0e0f"));
-        Cipher cipher = Cipher.getInstance("ECIESwithAES-CBC");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey,params);
-
-        byte[] cipherResult = cipher.doFinal(inputBytes, 0, inputBytes.length);
-        return new String(cipherResult);
-
-    }
-
     public static long calcMinFee(int inputsize, int outputsize, String openreturn, String opreturnAddr, long fee) {
 
         List<TxInput> txInputs = new ArrayList<>();
@@ -402,5 +259,53 @@ public class FchTool {
         byte[] sigBytes = Utils.HEX.decode(sig);
         return sigBytes.length;
     }
+
+    //**eceis
+
+
+
+    public static byte[]  generateKey(String pubkey){
+
+        IdInfo info=new IdInfo("L1WkwqiJgkPoYdjrs7tcikRj5hjwFebiTUChvxwubuSohpAaDzjP");
+        BigInteger  pk=info.getECKey().getPrivKey();
+        ECKey pubECKey=ECKey.fromPublicOnly(Utils.HEX.decode(pubkey));
+        WNafL2RMultiplier mu=new WNafL2RMultiplier();
+        org.bouncycastle.math.ec.ECPoint newECPoint=mu.multiply(pubECKey.getPubKeyPoint(),pk);
+        byte[] xCood=newECPoint.getXCoord().getEncoded();
+        Digest digest=new SHA512Digest();
+        digest.update(xCood,0,xCood.length);
+        byte[] r=new byte[digest.getDigestSize()];
+        digest.doFinal(r,0);
+        System.out.println(Utils.HEX.encode(r));
+        return  r;
+    }
+
+    public static byte[] aesCBCEncrypt(byte[] srcData,byte[] key,byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException {
+        SecretKeySpec keySpec= new SecretKeySpec(key, "AES");
+
+        Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec,new IvParameterSpec(iv));byte[] encData =cipher.doFinal(srcData);
+        return encData;
+
+    }
+
+    public static byte[] aesCBCDecrypt(byte[] encData,byte[] key,byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException {
+        SecretKeySpec keySpec= new SecretKeySpec(key, "AES");
+
+        Cipher cipher=Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+        cipher.init(Cipher.DECRYPT_MODE, keySpec,new IvParameterSpec(iv));
+        byte[] decbbdt =cipher.doFinal(encData);
+        return decbbdt;
+    }
+
+
+
+    public static void main(String[] args){
+       byte[] r= generateKey("023e0098dbd6126b140a160073d3ab1f94bff109f144d211c4054759e2fe2e7f86");
+    }
+
+
 
 }
