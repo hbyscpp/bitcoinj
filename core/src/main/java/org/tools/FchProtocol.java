@@ -172,7 +172,7 @@ public class FchProtocol {
     public static String createCidProtocol(String cid, CidOpType type) {
 
         Protocol protocol = new Protocol();
-        protocol.setHash("");
+        protocol.setHash("c296a4c88c7335d042638b0f875e1b4ffa56fe3970afe1ccdbd64d78fb302f3d");
         protocol.setName("CID");
         protocol.setType("FEIP");
         protocol.setSn(3);
@@ -200,7 +200,7 @@ public class FchProtocol {
 
     public static String createDigitEnvelopeProtocol(String msg) {
         Protocol protocol = new Protocol();
-        protocol.setHash("");
+        protocol.setHash("783ff1a248ee480b1861128d0c45e79d8a2996964df845418f427cd781639a7c");
         protocol.setName("DigitEnvelope");
         protocol.setType("FEIP");
         protocol.setSn(17);
@@ -215,7 +215,7 @@ public class FchProtocol {
 
     public static String delDigitEnvelopeProtocol(String txid) {
         Protocol protocol = new Protocol();
-        protocol.setHash("");
+        protocol.setHash("783ff1a248ee480b1861128d0c45e79d8a2996964df845418f427cd781639a7c");
         protocol.setName("DigitEnvelope");
         protocol.setType("FEIP");
         protocol.setSn(17);
