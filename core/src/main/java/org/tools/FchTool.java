@@ -24,6 +24,8 @@ import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
 import org.bouncycastle.math.ec.WNafL2RMultiplier;
+import org.bouncycastle.util.encoders.Base64;
+
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
@@ -301,7 +303,23 @@ public class FchTool {
     }
 
 
+    public static String encodeBase64Str(String str){
+        try {
+            byte[] strBytes=Base64.encode(str.getBytes("utf-8"));
+            return new String(strBytes,"utf-8");
+        }catch (Exception e){
 
+            throw  new RuntimeException(e);
+        }
+    }
+    public static String decodeBase64Str(String str){
+        try {
+            byte[] strBytes=Base64.decode(str.getBytes("utf-8"));
+            return new String(strBytes,"utf-8");
+        }catch (Exception e){
+            throw  new RuntimeException(e);
+        }
+    }
     public static void main(String[] args){
        byte[] r= generateKey("023e0098dbd6126b140a160073d3ab1f94bff109f144d211c4054759e2fe2e7f86");
     }
