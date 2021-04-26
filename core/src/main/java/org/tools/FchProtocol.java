@@ -1,6 +1,7 @@
 package org.tools;
 
 import com.google.gson.Gson;
+import org.bitcoinj.signers.CustomTransactionSigner;
 
 import java.nio.charset.Charset;
 
@@ -225,5 +226,49 @@ public class FchProtocol {
         digitEnvelope.setOp("del");
         digitEnvelope.setTxid(txid);
         return gson.toJson(protocol);
+    }
+
+    public static String createSignMsg(String msg,String address,String signature){
+        SignMsg signMsg=new SignMsg();
+        signMsg.setAddress(address);
+        signMsg.setMsg(msg);
+        signMsg.setSignature(signature);
+        return gson.toJson(signMsg);
+    }
+
+    public static SignMsg parseSignMsg(String msg){
+        return gson.fromJson(msg,SignMsg.class);
+    }
+
+    public static class SignMsg{
+        private String msg;
+
+        private String address;
+
+        private String signature;
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getSignature() {
+            return signature;
+        }
+
+        public void setSignature(String signature) {
+            this.signature = signature;
+        }
     }
 }

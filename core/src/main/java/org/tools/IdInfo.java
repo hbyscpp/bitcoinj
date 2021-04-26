@@ -56,6 +56,10 @@ public class IdInfo {
         return msg + "----" + address + "----" + signMsg(msg);
     }
 
+    public String signFullMessageJson(String msg) {
+        return FchProtocol.createSignMsg(msg,address,signMsg(msg));
+    }
+
 
     public ECKey getECKey(){
         return ecKey;

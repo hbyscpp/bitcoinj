@@ -201,6 +201,12 @@ public class FchTool {
         return idInfo.signFullMessage(msg);
     }
 
+    public static String signFullMsgJson(String msg, String wifkey) {
+
+        IdInfo idInfo = new IdInfo(wifkey);
+        return idInfo.signFullMessageJson(msg);
+    }
+
     /**
      * 签名验证
      *
@@ -213,6 +219,17 @@ public class FchTool {
             ECKey key = ECKey.signedMessageToKey(args[0], args[2]);
             Address targetAddr = key.toAddress(FchMainNetwork.MAINNETWORK);
             return args[1].equals(targetAddr.toString());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean verifyFullMsgJson(String msg) {
+        FchProtocol.SignMsg signMsg = FchProtocol.parseSignMsg(msg);
+        try {
+            ECKey key = ECKey.signedMessageToKey(signMsg.getMsg(), signMsg.getSignature());
+            Address targetAddr = key.toAddress(FchMainNetwork.MAINNETWORK);
+            return signMsg.getAddress().equals(targetAddr.toString());
         } catch (Exception e) {
             return false;
         }
