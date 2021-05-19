@@ -227,7 +227,7 @@ public class FchTool {
     public static boolean verifyFullMsgJson(String msg) {
         FchProtocol.SignMsg signMsg = FchProtocol.parseSignMsg(msg);
         try {
-            ECKey key = ECKey.signedMessageToKey(signMsg.getMsg(), signMsg.getSignature());
+            ECKey key = ECKey.signedMessageToKey(signMsg.getMessage(), signMsg.getSignature());
             Address targetAddr = key.toAddress(FchMainNetwork.MAINNETWORK);
             return signMsg.getAddress().equals(targetAddr.toString());
         } catch (Exception e) {

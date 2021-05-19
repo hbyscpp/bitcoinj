@@ -173,7 +173,7 @@ public class FchProtocol {
     public static String createCidProtocol(String cid, CidOpType type) {
 
         Protocol protocol = new Protocol();
-        protocol.setHash("c296a4c88c7335d042638b0f875e1b4ffa56fe3970afe1ccdbd64d78fb302f3d");
+        protocol.setHash("");
         protocol.setName("CID");
         protocol.setType("FEIP");
         protocol.setSn(3);
@@ -201,8 +201,8 @@ public class FchProtocol {
 
     public static String createDigitEnvelopeProtocol(String msg) {
         Protocol protocol = new Protocol();
-        protocol.setHash("783ff1a248ee480b1861128d0c45e79d8a2996964df845418f427cd781639a7c");
-        protocol.setName("DigitEnvelope");
+        protocol.setHash("");
+        protocol.setName("Safe");
         protocol.setType("FEIP");
         protocol.setSn(17);
         protocol.setVer(3);
@@ -216,8 +216,8 @@ public class FchProtocol {
 
     public static String delDigitEnvelopeProtocol(String txid) {
         Protocol protocol = new Protocol();
-        protocol.setHash("783ff1a248ee480b1861128d0c45e79d8a2996964df845418f427cd781639a7c");
-        protocol.setName("DigitEnvelope");
+        protocol.setHash("");
+        protocol.setName("Safe");
         protocol.setType("FEIP");
         protocol.setSn(17);
         protocol.setVer(3);
@@ -231,7 +231,7 @@ public class FchProtocol {
     public static String createSignMsg(String msg,String address,String signature){
         SignMsg signMsg=new SignMsg();
         signMsg.setAddress(address);
-        signMsg.setMsg(msg);
+        signMsg.setMessage(msg);
         signMsg.setSignature(signature);
         return gson.toJson(signMsg);
     }
@@ -241,19 +241,12 @@ public class FchProtocol {
     }
 
     public static class SignMsg{
-        private String msg;
+        private String message;
 
         private String address;
 
         private String signature;
 
-        public String getMsg() {
-            return msg;
-        }
-
-        public void setMsg(String msg) {
-            this.msg = msg;
-        }
 
         public String getAddress() {
             return address;
@@ -269,6 +262,14 @@ public class FchProtocol {
 
         public void setSignature(String signature) {
             this.signature = signature;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }
