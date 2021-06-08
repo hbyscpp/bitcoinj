@@ -33,7 +33,7 @@ public class AESUtils {
         try {
             KeyGenerator kgen = KeyGenerator.getInstance("AES");
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-            random.setSeed(password.getBytes());
+            random.setSeed(password.getBytes("utf-8"));
             kgen.init(128, random);
             SecretKey secretKey = kgen.generateKey();
             byte[] enCodeFormat = secretKey.getEncoded();
@@ -70,10 +70,12 @@ public class AESUtils {
 
     public static void main(String[] args) {
         String content = "test";
-        String password = "12345678";
+        String password = "123";
         //加密
         System.out.println("加密前：" + content);
         String encryptResult = encrypt(content, password);
+        System.out.println("密：" + encryptResult);
+
         //解密
         String decryptResult = decrypt(encryptResult,password);
         System.out.println("解密后：" + new String(decryptResult));
